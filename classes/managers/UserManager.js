@@ -15,7 +15,7 @@ class UserManager {
      * Fetch an user from database
      * @param {*} request - The request 
      */
-    async getUserById(id, language = "en") {
+    async getUserById(id, language) {
         let [dbUser] = await sequelize.query(`SELECT * FROM users WHERE id = "${id}"`);
         if(!dbUser[0]) [dbUser] = await this.createUser(id, language);
         return dbUser[0];

@@ -84,21 +84,16 @@ function getAttendanceStatement(channels, roles) {
             $("#loading").hide();
             $("#statement-title").text(response.title);
             $("#statement-description").text(response.description);
-            $("#redirect-button").css("display", "flex");
+            $("#success-button").css("display", "inline");
             $("#warning-button").hide();
             $(".warning").attr("src", "/icons/party.svg")
-            $("#newRequest").attr("onclick", "redirect('ATTENDANCE_NEWREQUEST', 'guild_id=" + response.guild_id + (response.channel_id ? "&channel_id=" + response.channel_id : "") + "');")
-            $("#newRequest").css("display", "flex");
-            $("#support-option").hide();
-            $("#support-option1").hide();
+            $("#newRequest").attr("onclick", "redirect('ATTENDANCE_NEWREQUEST', 'guild_id=" + response.guild_id + "');")
             $("#statement").show();
         } else {
             $("#loading").hide();
             $("#statement-title").text(response.title);
             $("#statement-description").text(response.description);
             $("#warning-button").show();
-            $("#support-option").show();
-            $("#support-option1").show();
             $("#statement").show();
         }
     }
@@ -505,14 +500,23 @@ function initSelect2ChannelList(parents, lang) {
             return;
         }
         const channelsJSON = JSON.parse(this.response);
-        const placeholder = (lang === "fr" ? "Salons" : "Channels") + " 🎧";
-        document.getElementById("select-channels").innerHTML = "<select id='select-1'multiple><option > <select> </option></select > ";
-        initSelect2($("#select-1"), placeholder, [], 4)
-        for (let key in channelsJSON) {
-            const text = parents ? `${parseCategory(channelsJSON[key].category)} ` + channelsJSON[key].name : channelsJSON[key].name;
-            var newOption = new Option(text, key, false, false);
-            $('#select-1').append(newOption).trigger('change');
+        request.open('GET', getUrl(`api/get/categories`, window), true)
+        request.onload = function () {
+            const response = JSON.parse(this.response);
+            const placeholder = (lang === "fr" ? "Salons" : "Channels") + " 🎧";
+            document.getElementById("select-channels").innerHTML = "<select id='select-1'multiple><option > <select> </option></select > ";
+            initSelect2($("#select-1"), placeholder, [], 4)
+            channelsJSON.sort(function (a, b) {
+                return a.name.localeCompare(b.name);
+            })
+            for (var i = 0; i < channelsJSON.length; i++) {
+                const text = parents ? ` (${parseCategory(response[channelsJSON[i].id]).replace("(", "[").replace(")", "]")}) ` + channelsJSON[i].name : channelsJSON[i].name;
+                var newOption = new Option(text, channelsJSON[i].id, false, false);
+                $('#select-1').append(newOption).trigger('change');
+            }
+
         }
+        request.send()
     }
     request.send();
 }
@@ -528,7 +532,7 @@ function deleteRequest(type = "attendance") {
 }
 
 const parseCategory = function (name) {
-    return name ? "(" + (name.length > 30 ? name.substring(0, 30) + "..." : name) + ")" : "";
+    return name.length > 30 ? name.substring(0, 30) + "..." : name;
 }
 
 
@@ -634,16 +638,9 @@ function initChoice(language) {
     request.onload = function () {
         const response = JSON.parse(this.response);
         $(".username").text(response.username);
-        $("#user-loader-image").html(`<img class="avatar" src="${response.avatar ? "https://cdn.discordapp.com/avatars/" + response.id + "/" + response.avatar : "/icons/avatar.png"}"></div>`)
-
-        $("#user-loader").hide();
-        $("#welcome").show();
-
+        $(".avatar").attr("src", "https://cdn.discordapp.com/avatars/" + response.id + "/" + response.avatar)
         $("#support-option").on("click", function () {
             redirect("API_SUPPORT_URL", undefined)
-        });
-        $("#donate-option").on("click", function () {
-            window.open("https://utip.io/mw3y")
         });
 
         if (response.attendance_request && !response.attendance_request.isExpired) {
@@ -661,6 +658,21 @@ function initChoice(language) {
             });
         }
 
+        if (response.poll_request && !response.poll_request.isExpired) {
+            if (language === "en") {
+                $("#create-poll").text("Continue the poll request in progress");
+            } else {
+                $("#create-poll").text("Continuer la requête de sondage en cours");
+            }
+            $("#poll-option").on("click", function () {
+                redirect("PAULL_PAGE", undefined)
+            });
+        } else {
+            $("#poll-option").on("click", function () {
+                initServerSelection(language, "poll")
+            });
+        }
+
     }
     request.send();
 
@@ -668,6 +680,12 @@ function initChoice(language) {
 
 function initServerSelection(language, type) {
     let redirectTo = "ATTENDANCE_NEWREQUEST";
+    if (type === "poll") {
+        redirectTo = "PAULL_NEWREQUEST";
+        $("#attendance-desc").hide();
+        $("#poll-desc").show();
+        $(".logo").attr("src", "/ressources/paull.png")
+    }
     $("#overlay").fadeOut(200);
 
     let request = new XMLHttpRequest();
@@ -745,52 +763,4 @@ function initParallax() {
 
 function shake() {
     $("#card").effect("shake");
-}
-
-function animateValue(obj, start, end, duration) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerHTML = Math.floor(progress * (end - start) + start);
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-function initHomePage(language) {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open("GET", getUrl("api/get/stats", window), true);
-    xmlHttp.onreadystatechange = function () {
-        if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-            const response = JSON.parse(this.responseText);
-            animateValue(document.getElementById("guilds"), 0, response.guilds, 700);
-            animateValue(document.getElementById("users"), 0, response.users, 700);
-            animateValue(document.getElementById("students"), 0, response.students, 700);
-            document.getElementById("version").innerHTML = response.version;
-        }
-    }
-    xmlHttp.send();
-    loadUser(language);
-    document.getElementById("year").innerHTML = new Date().getFullYear();
-}
-
-function loadUser(language) {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open("GET", getUrl("api/get/user", window), true);
-    xmlHttp.onreadystatechange = function () {
-        if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-            const response = JSON.parse(this.responseText);
-            const avatar = response.avatar ? "https://cdn.discordapp.com/avatars/" + response.id + "/" + response.avatar : "https://cdn.discordapp.com/embed/avatars/2.png";
-            $(".buttonUser")
-                .html('<img class="smallAvatar buttonSmallIcon" src="' + avatar + '"><p class="buttonUserNormal">' + response.username +
-                    '</p><p class="buttonUserHover">' +
-                    (language === "en" ? "Logout" : "Déconnexion") + '</p>')
-                .attr("href", "/auth/logout?redirectTo=/");
-            $(".buttonUse").html('<i class="fas fa-chevron-right buttonIcon"></i> ' + (language === "en" ? "Take attendance" : "Faire un suivi"))
-        }
-    }
-    xmlHttp.send();
 }
