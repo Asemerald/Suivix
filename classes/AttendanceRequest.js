@@ -14,12 +14,14 @@ class Request {
      * @param {Member} author - The attendance request author
      * @param {Date} date - The creation date of the attendance request
      * @param {Guild} guild - The attendance request guild
+     * @param {TextChannel} - Where the attendance has been started
      */
-    constructor(id, author, date, guild) {
+    constructor(id, author, date, guild, channel) {
         this.id = id;
         this.author = author;
         this.date = date;
         this.guild = guild;
+        this.channel = channel;
     }
 
     /**
@@ -51,25 +53,16 @@ class Request {
     }
 
     /**
-     * Returns the entire list of voice channels in the guild that the user can see
+     * Returns the entire list of voice channels with their category in the guild that the user can see
      */
     getVoiceChannels() {
-        return this.guild.channels.cache.filter(channel => channel.type === "voice" && channel.permissionsFor(this.author).has('VIEW_CHANNEL'));
-    }
-
-    /**
-     * Returns the entire list of voice channels categories
-     */
-    getCategories(channels) {
-        let channelsCategories = new Map();
-        channels.forEach(function (c) {
-            if (c.parent) {
-                channelsCategories[c.id] = c.parent.name
-            } else {
-                channelsCategories[c.id] = "Unknown";
-            }
-        });
-        return channelsCategories
+        const voiceChannels = this.guild.channels.cache.filter(channel => channel.type === "voice" && channel.permissionsFor(this.author).has('VIEW_CHANNEL'));
+        const channels = {};
+        voiceChannels.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        })
+        voiceChannels.forEach(channel => channels[channel.id] = {category: channel.parent ? channel.parent.name : undefined, name: channel.name})
+        return channels;
     }
 
     /**
@@ -100,8 +93,9 @@ class Request {
         let statement = {
             success: true,
             title: TextTranslation.website.statement.success.title,
-            description: TextTranslation.website.statement.success.description,
-            guild_id: this.guild.id
+            description: TextTranslation.website.statement.success.dm,
+            guild_id: this.guild.id,
+            channel_id: this.channel ? this.channel.id : undefined
         };
 
         let parsedRoles = this.transformStringListIntoArray(roles, "roles");
@@ -159,31 +153,36 @@ class Request {
         const selectedColor = colors[Math.floor(Math.random() * colors.length)];
         const color = selectedColor ? selectedColor.color : 0; //Picking a random one
 
-        //Send result to the user in dm
-        const resultMessage = await this.author.send(new Discord.MessageEmbed().setTitle(TextTranslation.title + channelsString).setFooter(TextTranslation.credits) //send result
+        //Send result to the user
+        const resultMessage = await this[this.channel === undefined ? "author" : "channel"].send(new Discord.MessageEmbed().setTitle(TextTranslation.title + channelsString).setFooter(TextTranslation.credits) //send result
                 .setDescription(intro + presentSentence + absentSentence + absentsText + presentsText).setColor(color))
             .catch(function (err) {
                 console.log("⚠   Error while sending ".red + "ATTENDANCE_RESULT" + " message!".red + separator)
             });
 
-        if(!resultMessage) {
+        if(this.channel) statement.description = TextTranslation.website.statement.success.channel.formatUnicorn({channel: this.channel.name})
+
+        if (!resultMessage) {
             statement.success = false;
             statement.title = TextTranslation.website.statement.errors.title;
-            statement.description = TextTranslation.website.statement.errors.unableToSendMessage;
+            if (this.channel === undefined) statement.description = TextTranslation.website.statement.errors.unableToSendMessage;
+            else statement.description = TextTranslation.website.statement.errors.unableToSendMessageInChannel;
         }
 
-        if (statement.success) console.log(
-            "{username}#{discriminator}".formatUnicorn({
-                username: this.author.user.username,
-                discriminator: this.author.user.discriminator
-            }).yellow +
-            " has finished an attendance request.".blue +
-            " (id: '{id}', server: '{server}')".formatUnicorn({
-                id: this.id,
-                server: this.guild.name
-            }) +
-            separator
-        );
+        if (statement.success) {
+            console.log(
+                "{username}#{discriminator}".formatUnicorn({
+                    username: this.author.user.username,
+                    discriminator: this.author.user.discriminator
+                }).yellow +
+                " has finished an attendance request.".blue +
+                " (id: '{id}', server: '{server}')".formatUnicorn({
+                    id: this.id,
+                    server: this.guild.name
+                }) + separator
+            );
+            if(this.channel) await this.clearChannel(language); //Clear channel from unfinished suivix queries
+        }
 
         return statement;
     }
@@ -306,6 +305,25 @@ class Request {
             }
             return string;
         }
+    }
+
+    /**
+     * Clear all suivix attendance request messages in the channel
+     */
+    async clearChannel(language) {
+        let messages = await this.channel.messages.fetch({
+            limit: 100
+        });
+        const guild = this.guild;
+        messages.forEach(function (message) {
+            if ((message.embeds.length > 0 && message.embeds[0].title != undefined)) {
+                if (message.embeds[0].title.startsWith("Attendance Request") && language === "en") {
+                    message.delete().catch(err => console.log("⚠   Error while deleting ".red + "ATTENDANCE_REQUEST" + " messages!".red + ` (server: '${guild.name}', language: 'en')` + separator));
+                } else if (message.embeds[0].title.startsWith("Demande de suivi") && language === "fr") {
+                    message.delete().catch(err => console.log("⚠   Error while deleting ".red + "ATTENDANCE_REQUEST" + " messages!".red + ` (server: '${guild.name}', language: 'fr')` + separator));
+                }
+            }
+        })
     }
 
     /**

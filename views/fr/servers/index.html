@@ -46,8 +46,9 @@
 <body>
     <div class="overlay" id="overlay">
         <div class="popup">
-            <div class="centered"><img class="avatar" src="/ressources/unknown-server.png"></div>
-            <div class="title centered">Bonjour <var class="username">...</var></div>
+            <div class="centered" id="user-loader-image"><div class="loading-user-image"></div></div>
+            <div style="width: 150px; display: block;" class="loading-text centered" id="user-loader"></div>
+            <div class="title centered" style="display: none;" id="welcome">Bonjour <var class="username"></var></div>
             <div class="description">QUE VOULEZ-VOUS FAIRE ?</div>
             <div class="options">
                 <div class="option" id="attendance-option">
@@ -58,9 +59,9 @@
                         <path aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"
                             stroke-linejoin="round" stroke-width="2" d="M 7 10 L 12 15 L 17 10" /></svg>
                 </div>
-                <div class="option" id="poll-option">
-                    <img class="emoji" src="/ressources/paull.png">
-                    <div class="optionTitle" id="create-poll">Créer un Sondage</div>
+                <div class="option" id="donate-option">
+                    <img class="emoji" src="/icons/donate.png">
+                    <div class="optionTitle">Me Soutenir<div class="optionDescription">J'ai 15 ans et je suis un étudiant français. Suivix est mon premier<br> gros projet. Vous pouvez faire un don pour m'aider<br>à financer mes futures études.</div></div>
                     <svg xmlns="http://www.w3.org/2000/svg" class="optionArrow" viewBox="0 0 24 24" width="24"
                         height="24">
                         <path aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"
@@ -94,11 +95,7 @@
                     <h1 class="title" id="title">SÉLECTION D'UN SERVEUR</h1>
                     <p class="description"></strong></p>
                     <p class="description" id="attendance-desc">Avant toute chose, cliquez sur le serveur dans lequel
-                        vous voulez effectuer votre suivi.<strong> Vous devez impérativement autoriser suivix à vous envoyer des
-                            messages privés avant de lancer une demande de suivi.
-                        </strong></p>
-                    <p class="description" id="poll-desc" style="display: none;">Avant toute chose, cliquez sur le serveur dans lequel
-                        vous voulez créer votre sondage.</p>
+                        vous voulez effectuer votre suivi.</p>
                 </div>
                 <div class="servers-container">
                     <div class="servers">
