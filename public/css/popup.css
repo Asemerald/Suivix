@@ -20,7 +20,7 @@
     padding: 16px;
     min-width: 420px;
     max-width: 600px;
-    min-height: 500px;
+    min-height: 550px;
     position: relative;
     z-index: 130;
     position: fixed;
@@ -144,10 +144,9 @@
     line-height: 18px;
     color: #b9bbbe;
     text-decoration: none;
-    position: fixed;
-    bottom: 10px;
     width: 93%;
     text-align: center;
+    margin-top: 10px;
 }
 
 .popup .language-option:hover {
