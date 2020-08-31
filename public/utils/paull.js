@@ -15,8 +15,8 @@ const initPaull = function (lang) {
         $("#user-loader-image").hide();
         $("#user-infos").show();
 
-        initSelect2ChannelList(response.requestID, true, lang);
-        initSelect2RoleList(response.requestID, lang);
+        initSelect2ChannelList(true, lang);
+        initSelect2RoleList(lang);
 
         $("#poll-subject").on("input", function () {
             if ($(this).val() === "") return;
