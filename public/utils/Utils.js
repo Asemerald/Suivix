@@ -13,31 +13,9 @@ function httpGetRequest(url, token) {
 }
 
 const initAttendance = function (lang) {
-    var request = new XMLHttpRequest()
-    request.open('GET', getUrl(`api/get/user`, window), true)
-    request.withCredentials = true;
-
-    request.onload = function () {
-        const response = JSON.parse(this.response);
-        document.getElementById("username").innerHTML = response.username;
-        document.getElementById("discriminator").innerHTML = "#" + response.discriminator;
-        document.getElementById("avatar").src = response.avatar ? "https://cdn.discordapp.com/avatars/" + response.id + "/" + response.avatar : "https://cdn.discordapp.com/embed/avatars/2.png";
-        $("#user-loader").hide();
-        $("#user-loader-image").hide();
-        $("#user-infos").show();
-
-        displayChangelog(lang, document.getElementById("version"), document.getElementById("changelogText"));
-
-        if (response.attendance_request) {
-            initSelect2ChannelList(true, lang);
-            initSelect2RoleList(lang);
-            initSelect2Timezone(lang);
-        } else {
-            redirect("SERVERS_SELECTION");
-        }
-
-    }
-    request.send();
+    initNavbar();
+    loadUser(lang, true);
+    displayChangelog(lang, document.getElementById("version"), document.getElementById("changelogText"));
 }
 
 function doAttendance() {
@@ -651,6 +629,8 @@ function closeChangelog() {
 }
 
 function initChoice(language) {
+    initNavbar();
+    loadUser(language);
     var request = new XMLHttpRequest()
     request.open('GET', getUrl(`api/get/user`, window), true)
     request.withCredentials = true;
@@ -713,7 +693,7 @@ function initServerSelection(language, type) {
                 continue;
             };
             if (!response[k].suivix && (response[k].permissions & 0x20) !== 32) continue;
-            if(!separator && !response[k].suivix) {
+            if (!separator && !response[k].suivix) {
                 separator = true;
                 $(".servers").append('<div class="text-separator">' + (language === "en" ? 'INSTALL SUIVIX' : "INSTALLER SUIVIX") + '</div>')
             }
@@ -806,7 +786,7 @@ function initHomePage(language) {
     document.getElementById("year").innerHTML = new Date().getFullYear();
 }
 
-function loadUser(language) {
+function loadUser(language, select = false) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open("GET", getUrl("api/get/user", window), true);
     xmlHttp.onreadystatechange = function () {
@@ -819,6 +799,12 @@ function loadUser(language) {
                     (language === "en" ? "Logout" : "Déconnexion") + '</p>')
                 .attr("href", "/auth/logout?redirectTo=/");
             $(".buttonUse").html('<i class="fas fa-chevron-right buttonIcon"></i> ' + (language === "en" ? "Take attendance" : "Faire un suivi"))
+
+            if (response.attendance_request && select) {
+                initSelect2ChannelList(true, language);
+                initSelect2RoleList(language);
+                initSelect2Timezone(language);
+            }
         }
     }
     xmlHttp.send();
@@ -826,4 +812,19 @@ function loadUser(language) {
 
 function displaySupportPopup(language) {
     $('#overlay').show();
+}
+
+function initNavbar() {
+    const doc = document;
+    const menuOpen = doc.querySelector(".menu");
+    const menuClose = doc.querySelector(".close");
+    const overlay = doc.querySelector(".nav-overlay");
+
+    menuOpen.addEventListener("click", () => {
+        overlay.classList.add("overlay--active");
+    });
+
+    menuClose.addEventListener("click", () => {
+        overlay.classList.remove("overlay--active");
+    });
 }

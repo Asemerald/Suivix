@@ -13,6 +13,8 @@
     <!-- import the webpage's stylesheet -->
     <link rel="stylesheet" href="/css/attendance-main.css">
     <link rel="stylesheet" href="/css/popup.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+
     <link href="/css/select2.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
         integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
@@ -97,16 +99,19 @@
             </div>
         </div>
     </div>
-    <div class="navbar">
-        <a href="/" class="title">SUIVIX</a>
-        <a href="/auth/logout?redirectTo=/" class="user" title="Sign out"><i class="fas fa-sign-out-alt"></i></a>
-        <div class="loading-image" id="user-loader-image"></div>
-        <div style="width: 150px;" class="loading-text" id="user-loader"></div>
-        <p class="user" id="user-infos">
-            <var id="username"></var><var class="discriminator" id="discriminator"></var><img class="avatar"
-                id="avatar"></p>
-        <a href="?language=fr" class="language margin">FR.</a>
-        <a href="javascript:void(0)" class="language margin-15">EN.</a>
+    <header>
+        <a class="logo" href="/"><img src="/images/logo.png" alt="logo"></a>
+        <a class="button buttonGrey buttonSmall buttonUser" href="/auth/login" id="pc-menu">Login</a>
+        <div class="menu">
+            <p class="button buttonWhite buttonSmall bold">Menu</p>
+          </div>
+    </header>
+    <div id="mobile__menu" class="nav-overlay">
+        <a class="close">&times;</a>
+        <div class="overlay__content">
+            <a href="/"><i class="fas fa-home"></i> Home</a>
+            <a href="?language=fr"><i class="fas fa-globe"></i> Version Française</a>
+        </div>
     </div>
     <div class="container">
         <div class="attendance-card" id="card">

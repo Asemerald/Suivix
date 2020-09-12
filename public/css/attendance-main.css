@@ -119,43 +119,6 @@ body {
     }
 }
 
-.navbar {
-    height: 25px;
-    padding: 10px 75px;
-    white-space: nowrap;
-    background: #131615;
-    z-index: 350;
-}
-
-.navbar .title {
-    color: #fff;
-    font-weight: 700;
-    font-size: 25px;
-    line-height: 25px;
-    text-decoration: none;
-}
-
-.navbar .language {
-    color: #fff;
-    font-weight: 400;
-    font-size: 20px;
-    line-height: 25px;
-    text-decoration: none;
-    float: right;
-}
-
-.navbar .language:hover {
-    opacity: 0.9;
-}
-
-.navbar .margin {
-    margin-right: 75px;
-}
-
-.navbar .margin-15 {
-    margin-right: 5px;
-}
-
 .user img {
     display: inline;
     max-height: 25px;
@@ -291,8 +254,7 @@ button {
 }
 
 .blue-btn {
-    background: rgb(63, 94, 251);
-    background: linear-gradient(45deg, rgba(63, 94, 251, 1) 0%, rgba(114, 137, 218, 1) 100%);
+    background: #7289DA;
     background-size: 200%;
 }
 
